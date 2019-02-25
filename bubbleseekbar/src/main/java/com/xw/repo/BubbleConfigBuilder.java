@@ -48,6 +48,11 @@ public class BubbleConfigBuilder {
     long alwaysShowBubbleDelay;
     boolean hideBubble;
     boolean rtl;
+    int mTickColor;
+    int mTickSize;
+    boolean isOverrideThumb;
+    boolean isOverrideTickSize;
+    boolean isOverrideTickColor;
 
     private BubbleSeekBar mBubbleSeekBar;
 
@@ -58,6 +63,32 @@ public class BubbleConfigBuilder {
     public void build() {
         mBubbleSeekBar.config(this);
     }
+
+    public BubbleConfigBuilder overrideTickColor(boolean overrideTickColor) {
+        isOverrideTickColor = overrideTickColor;
+        return this;
+    }
+
+    public BubbleConfigBuilder tickColor(int mTickColor) {
+        this.mTickColor = mTickColor;
+        return this;
+    }
+
+    public BubbleConfigBuilder tickSize(int mTickSize) {
+        this.mTickSize = mTickSize;
+        return this;
+    }
+
+    public BubbleConfigBuilder overrideThumb(boolean overrideThumb) {
+        isOverrideThumb = overrideThumb;
+        return this;
+    }
+
+    public BubbleConfigBuilder overrideTickSize(boolean overrideTickSize) {
+        isOverrideTickSize = overrideTickSize;
+        return this;
+    }
+
 
     public BubbleConfigBuilder min(float min) {
         this.min = min;

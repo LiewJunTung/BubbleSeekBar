@@ -62,6 +62,12 @@ public class BubbleSeekBar extends View {
         int SIDES = 0, BOTTOM_SIDES = 1, BELOW_SECTION_MARK = 2;
     }
 
+    private int mBlackAlphaColor;
+    private int mTickColor;
+    private int mTickSize;
+    private boolean isOverrideThumb;
+    private boolean isOverrideTickSize;
+    private boolean isOverrideTickColor;
     private float mMin; // min
     private float mMax; // max
     private float mProgress; // real time value
@@ -173,6 +179,13 @@ public class BubbleSeekBar extends View {
         } else {
             mSectionTextPosition = NONE;
         }
+        mTextSpace = a.getDimensionPixelSize(R.styleable.BubbleSeekBar_bsb_text_space, dp2px(2));
+        mBlackAlphaColor = ContextCompat.getColor(context, R.color.black30);
+        mTickColor = a.getColor(R.styleable.BubbleSeekBar_ssb_tick_color, mSecondTrackColor);
+        isOverrideTickColor = a.getBoolean(R.styleable.BubbleSeekBar_ssb_override_tick_color, false);
+        isOverrideTickSize = a.getBoolean(R.styleable.BubbleSeekBar_ssb_override_tick_size, false);
+        isOverrideThumb = a.getBoolean(R.styleable.BubbleSeekBar_ssb_override_thumb, false);
+        mTickSize = a.getDimensionPixelSize(R.styleable.BubbleSeekBar_ssb_tick_size, dp2px(4));
         mSectionTextInterval = a.getInteger(R.styleable.BubbleSeekBar_bsb_section_text_interval, 1);
         isShowThumbText = a.getBoolean(R.styleable.BubbleSeekBar_bsb_show_thumb_text, false);
         mThumbTextSize = a.getDimensionPixelSize(R.styleable.BubbleSeekBar_bsb_thumb_text_size, sp2px(14));
@@ -200,7 +213,7 @@ public class BubbleSeekBar extends View {
         mPaint.setTextAlign(Paint.Align.CENTER);
 
         mRectText = new Rect();
-        mTextSpace = dp2px(2);
+
 
         initConfigByPriority();
 
@@ -556,40 +569,6 @@ public class BubbleSeekBar extends View {
         boolean isShowTextBelowSectionMark = isShowSectionText && mSectionTextPosition ==
                 TextPosition.BELOW_SECTION_MARK;
 
-        // draw sectionMark & sectionText BELOW_SECTION_MARK
-        if (isShowTextBelowSectionMark || isShowSectionMark) {
-            mPaint.setTextSize(mSectionTextSize);
-            mPaint.getTextBounds("0123456789", 0, "0123456789".length(), mRectText); // compute solid height
-
-            float x_;
-            float y_ = yTop + mRectText.height() + mThumbRadiusOnDragging + mTextSpace;
-            float r = (mThumbRadiusOnDragging - dp2px(2)) / 2f;
-            float junction; // where secondTrack meets firstTrack
-            if (isRtl) {
-                junction = mRight - mTrackLength / mDelta * Math.abs(mProgress - mMin);
-            } else {
-                junction = mLeft + mTrackLength / mDelta * Math.abs(mProgress - mMin);
-            }
-
-            for (int i = 0; i <= mSectionCount; i++) {
-                x_ = xLeft + i * mSectionOffset;
-                if (isRtl) {
-                    mPaint.setColor(x_ <= junction ? mTrackColor : mSecondTrackColor);
-                } else {
-                    mPaint.setColor(x_ <= junction ? mSecondTrackColor : mTrackColor);
-                }
-                // sectionMark
-                canvas.drawCircle(x_, yTop, r, mPaint);
-
-                // sectionText belows section
-                if (isShowTextBelowSectionMark) {
-                    mPaint.setColor(mSectionTextColor);
-                    if (mSectionTextArray.get(i, null) != null) {
-                        canvas.drawText(mSectionTextArray.get(i), x_, y_, mPaint);
-                    }
-                }
-            }
-        }
 
         if (!isThumbOnDragging || isAlwaysShowBubble) {
             if (isRtl) {
@@ -632,9 +611,62 @@ public class BubbleSeekBar extends View {
             canvas.drawLine(mThumbCenterX, yTop, xRight, yTop, mPaint);
         }
 
+        // draw sectionMark & sectionText BELOW_SECTION_MARK
+        if (isShowTextBelowSectionMark || isShowSectionMark) {
+            mPaint.setTextSize(mSectionTextSize);
+            mPaint.getTextBounds("0123456789", 0, "0123456789".length(), mRectText); // compute solid height
+
+            float x_;
+            float y_ = yTop + mRectText.height() + mThumbRadiusOnDragging + mTextSpace;
+            float r;
+            if (isOverrideTickSize) {
+                r = mTickSize;
+            } else {
+                r = (mThumbRadiusOnDragging - dp2px(2)) / 2f;
+            }
+            float junction; // where secondTrack meets firstTrack
+            if (isRtl) {
+                junction = mRight - mTrackLength / mDelta * Math.abs(mProgress - mMin);
+            } else {
+                junction = mLeft + mTrackLength / mDelta * Math.abs(mProgress - mMin);
+            }
+
+            for (int i = 0; i <= mSectionCount; i++) {
+                x_ = xLeft + i * mSectionOffset;
+                if (isOverrideTickColor) {
+                    mPaint.setColor(mTickColor);
+                } else {
+                    if (isRtl) {
+                        mPaint.setColor(x_ <= junction ? mTrackColor : mSecondTrackColor);
+                    } else {
+                        mPaint.setColor(x_ <= junction ? mSecondTrackColor : mTrackColor);
+                    }
+                }
+
+                // sectionMark
+                canvas.drawCircle(x_, yTop, r, mPaint);
+
+                // sectionText belows section
+                if (isShowTextBelowSectionMark) {
+                    mPaint.setColor(mSectionTextColor);
+                    if (mSectionTextArray.get(i, null) != null) {
+                        canvas.drawText(mSectionTextArray.get(i), x_, y_, mPaint);
+                    }
+                }
+            }
+        }
         // draw thumb
         mPaint.setColor(mThumbColor);
-        canvas.drawCircle(mThumbCenterX, yTop, isThumbOnDragging ? mThumbRadiusOnDragging : mThumbRadius, mPaint);
+        if (isOverrideThumb) {
+            canvas.drawRoundRect(mThumbCenterX - 70, yTop + 50, mThumbCenterX + 70, yTop - 50, 10, 10, mPaint);
+            mPaint.setColor(mBlackAlphaColor);
+            canvas.drawRect(mThumbCenterX - 10, yTop + 30, mThumbCenterX + 10, yTop - 30, mPaint);
+            canvas.drawRect(mThumbCenterX + 20, yTop + 30, mThumbCenterX + 40, yTop - 30, mPaint);
+            canvas.drawRect(mThumbCenterX - 40, yTop + 30, mThumbCenterX - 20, yTop - 30, mPaint);
+        } else {
+            canvas.drawCircle(mThumbCenterX, yTop, isThumbOnDragging ? mThumbRadiusOnDragging : mThumbRadius, mPaint);
+        }
+//        canvas.drawCircle(mThumbCenterX, yTop, isThumbOnDragging ? mThumbRadiusOnDragging : mThumbRadius, mPaint);
     }
 
     @Override
@@ -1119,6 +1151,10 @@ public class BubbleSeekBar extends View {
         postInvalidate();
     }
 
+    public int getIndex() {
+        return (int) (Math.round(mProgress) / mMax * mSectionCount);
+    }
+
     public int getProgress() {
         return Math.round(processProgress());
     }
@@ -1224,6 +1260,11 @@ public class BubbleSeekBar extends View {
     /////// Api ends ///////////////////////////////////////////////////////////////////////////////
 
     void config(BubbleConfigBuilder builder) {
+        mTickColor = builder.mTickColor;
+        isOverrideTickColor = builder.isOverrideTickColor;
+        isOverrideTickSize = builder.isOverrideTickSize;
+        isOverrideThumb = builder.isOverrideThumb;
+        mTickSize = builder.mTickSize;
         mMin = builder.min;
         mMax = builder.max;
         mProgress = builder.progress;

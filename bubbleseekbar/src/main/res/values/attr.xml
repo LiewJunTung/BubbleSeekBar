@@ -43,5 +43,11 @@
         <attr name="bsb_hide_bubble" format="boolean"/> <!--hide bubble, default: false-->
         <attr name="bsb_rtl" format="boolean"/> <!--right to left, default: false-->
         <attr name="android:enabled"/>
+        <attr name="bsb_text_space" format="dimension|reference"/> <!--unusable text color, default:Color.GRAY-->
+        <attr name="ssb_tick_color" format="color|reference"/> <!--unusable text color, default:Color.GRAY-->
+        <attr name="ssb_override_tick_color" format="boolean"/> <!--unusable text color, default:false-->
+        <attr name="ssb_override_tick_size" format="boolean"/> <!--unusable text color, default:false-->
+        <attr name="ssb_tick_size" format="dimension|reference"/> <!--unusable text color, default:false-->
+        <attr name="ssb_override_thumb" format="boolean"/>
     </declare-styleable>
 </resources>
